@@ -6,6 +6,12 @@ export interface Paciente {
   createdAt: Timestamp | null
 }
 
+export interface MedicamentoPreset {
+  id: string
+  medicamento: string
+  dosagem: string
+}
+
 export interface Registro {
   id: string
   medicamento: string

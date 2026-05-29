@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, FileText, Pill, Pencil, Trash2 } from "lucide-react"
+import { ArrowLeft, Plus, FileText, Pill, Pencil, Trash2, Zap, Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,9 +13,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { getPaciente, criarRegistro, listarRegistros, removerRegistro, atualizarRegistro } from "@/services/pacientes"
+import { getPaciente, criarRegistro, listarRegistros, removerRegistro, atualizarRegistro, listarPresets, criarPreset, removerPreset } from "@/services/pacientes"
 import { exportarPDF } from "@/utils/exportPdf"
-import type { Paciente, Registro } from "@/types"
+import type { Paciente, Registro, MedicamentoPreset } from "@/types"
 import { formatDateTime } from "@/types"
 
 interface PageProps {
@@ -35,6 +35,10 @@ export default function PacientePage({ params }: PageProps) {
   const [observacao, setObservacao] = useState("")
   const [editando, setEditando] = useState<Registro | null>(null)
   const [editOpen, setEditOpen] = useState(false)
+  const [presets, setPresets] = useState<MedicamentoPreset[]>([])
+  const [presetOpen, setPresetOpen] = useState(false)
+  const [novoPresetNome, setNovoPresetNome] = useState("")
+  const [novoPresetDosagem, setNovoPresetDosagem] = useState("")
   const [erro, setErro] = useState("")
   const [loading, setLoading] = useState(true)
 
@@ -45,6 +49,7 @@ export default function PacientePage({ params }: PageProps) {
     Promise.all([
       getPaciente(id).then(setPaciente),
       listarRegistros(id).then(setRegistros),
+      listarPresets(id).then(setPresets),
     ]).catch(() => {
       setErro("Erro ao carregar dados. Firebase não configurado.")
     }).finally(() => {
@@ -115,6 +120,50 @@ export default function PacientePage({ params }: PageProps) {
     }
   }
 
+  async function handleRegistroRapido(p: MedicamentoPreset) {
+    setSubmitting(true)
+    try {
+      await criarRegistro(id, {
+        medicamento: p.medicamento,
+        dosagem: p.dosagem,
+        observacao: "",
+      })
+      setRegistros(await listarRegistros(id))
+    } catch {
+      setErro("Erro ao registrar medicamento.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleAdicionarPreset() {
+    if (!novoPresetNome.trim() || submitting) return
+    setSubmitting(true)
+    setErro("")
+    try {
+      await criarPreset(id, {
+        medicamento: novoPresetNome.trim(),
+        dosagem: novoPresetDosagem.trim(),
+      })
+      setNovoPresetNome("")
+      setNovoPresetDosagem("")
+      setPresets(await listarPresets(id))
+    } catch {
+      setErro("Erro ao adicionar atalho.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleRemoverPreset(presetId: string) {
+    try {
+      await removerPreset(id, presetId)
+      setPresets(await listarPresets(id))
+    } catch {
+      setErro("Erro ao remover atalho.")
+    }
+  }
+
   function handleExportPDF() {
     exportarPDF(
       paciente?.nome ?? "Paciente",
@@ -174,6 +223,92 @@ export default function PacientePage({ params }: PageProps) {
           <FileText className="w-5 h-5 text-[#0d5555]" />
         </button>
       </div>
+
+      {presets.length > 0 && (
+        <div className="mb-6 animate-fade-in">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Registro rápido</p>
+            <button
+              onClick={() => setPresetOpen(true)}
+              className="text-xs text-[#0d5555] hover:underline"
+            >
+              Gerenciar
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {presets.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => handleRegistroRapido(p)}
+                disabled={submitting}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#0d5555]/5 text-[#0d5555] text-sm font-medium hover:bg-[#0d5555]/10 active:scale-95 transition-all disabled:opacity-50"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                {p.medicamento}
+                {p.dosagem && <span className="text-muted-foreground/60 font-normal">{p.dosagem}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Dialog open={presetOpen} onOpenChange={setPresetOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-[family-name:var(--font-display)] text-xl">
+              Gerenciar Atalhos
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 pt-1">
+            {presets.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Nenhum atalho cadastrado.
+              </p>
+            ) : (
+              presets.map((p) => (
+                <div key={p.id} className="flex items-center justify-between rounded-lg border border-[#e8e4df] px-3 py-2">
+                  <div>
+                    <p className="text-sm font-medium text-[#1a1a18]">{p.medicamento}</p>
+                    {p.dosagem && <p className="text-xs text-muted-foreground">{p.dosagem}</p>}
+                  </div>
+                  <button
+                    onClick={() => handleRemoverPreset(p.id)}
+                    className="min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg hover:bg-red-50 active:scale-95 transition-all"
+                    title="Remover"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                  </button>
+                </div>
+              ))
+            )}
+            <div className="border-t border-[#e8e4df] pt-3 mt-1">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Adicionar atalho</p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Medicamento"
+                  value={novoPresetNome}
+                  onChange={(e) => setNovoPresetNome(e.target.value)}
+                  className="text-sm flex-1"
+                />
+                <Input
+                  placeholder="Dosagem"
+                  value={novoPresetDosagem}
+                  onChange={(e) => setNovoPresetDosagem(e.target.value)}
+                  className="text-sm w-24"
+                />
+                <Button
+                  onClick={handleAdicionarPreset}
+                  disabled={!novoPresetNome.trim() || submitting}
+                  size="sm"
+                  className="shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {registros.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 animate-fade-in">

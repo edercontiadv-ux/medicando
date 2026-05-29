@@ -10,7 +10,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import type { Paciente, Registro } from "@/types"
+import type { Paciente, Registro, MedicamentoPreset } from "@/types"
 
 
 function getDatabase() {
@@ -106,6 +106,37 @@ export async function atualizarRegistro(
 ): Promise<void> {
   const firestore = getDatabase()
   await setDoc(doc(firestore, "pacientes", pacienteId, "registros", registroId), data, { merge: true })
+}
+
+export async function criarPreset(
+  pacienteId: string,
+  data: Omit<MedicamentoPreset, "id">
+): Promise<string> {
+  const firestore = getDatabase()
+  const presetsRef = collection(firestore, "pacientes", pacienteId, "presets")
+  const docRef = doc(presetsRef)
+  const id = docRef.id
+
+  await setDoc(docRef, data)
+
+  return id
+}
+
+export async function listarPresets(pacienteId: string): Promise<MedicamentoPreset[]> {
+  try {
+    const firestore = getDatabase()
+    const presetsRef = collection(firestore, "pacientes", pacienteId, "presets")
+    const snapshot = await getDocs(presetsRef)
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as MedicamentoPreset))
+  } catch (e) {
+    console.error("Erro ao listar presets:", e)
+    return []
+  }
+}
+
+export async function removerPreset(pacienteId: string, presetId: string): Promise<void> {
+  const firestore = getDatabase()
+  await deleteDoc(doc(firestore, "pacientes", pacienteId, "presets", presetId))
 }
 
 export async function listarRegistros(pacienteId: string): Promise<Registro[]> {
