@@ -62,18 +62,19 @@ export async function getPaciente(id: string): Promise<Paciente | null> {
 }
 
 export async function removerPaciente(id: string): Promise<void> {
-  try {
-    const firestore = getDatabase()
-    const registrosRef = collection(firestore, "pacientes", id, "registros")
-    const snapshot = await getDocs(registrosRef)
-    const deleteRegistros = snapshot.docs.map(d =>
-      deleteDoc(doc(firestore, "pacientes", id, "registros", d.id))
-    )
-    await Promise.all(deleteRegistros)
-    await deleteDoc(doc(firestore, "pacientes", id))
-  } catch (e) {
-    console.error("Erro ao remover paciente:", e)
-  }
+  const firestore = getDatabase()
+  const registrosRef = collection(firestore, "pacientes", id, "registros")
+  const snapshot = await getDocs(registrosRef)
+  const deleteRegistros = snapshot.docs.map(d =>
+    deleteDoc(doc(firestore, "pacientes", id, "registros", d.id))
+  )
+  await Promise.all(deleteRegistros)
+  await deleteDoc(doc(firestore, "pacientes", id))
+}
+
+export async function atualizarPaciente(id: string, nome: string): Promise<void> {
+  const firestore = getDatabase()
+  await setDoc(doc(firestore, "pacientes", id), { nome }, { merge: true })
 }
 
 export async function criarRegistro(

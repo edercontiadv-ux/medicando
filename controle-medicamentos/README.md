@@ -14,6 +14,7 @@ PWA mobile-first para controle de medicamentos.
 ## Funcionalidades
 
 - Cadastro de pacientes com navegação automática para ficha
+- Editar e excluir pacientes
 - Registro de medicamentos com medicamento, dosagem e observação
 - Editar e excluir registros de medicamentos
 - Data e hora automáticas em cada registro
