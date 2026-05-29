@@ -1,6 +1,7 @@
 import {
   collection,
   addDoc,
+  setDoc,
   getDocs,
   getDoc,
   doc,
@@ -25,11 +26,16 @@ function getDatabase() {
 export async function criarPaciente(nome: string): Promise<string> {
   const firestore = getDatabase()
   const pacientesRef = collection(firestore, "pacientes")
-  const docRef = await addDoc(pacientesRef, {
+  const docRef = doc(pacientesRef)
+  const id = docRef.id
+  
+  // Executa o setDoc em segundo plano para retorno imediato (offline-first)
+  setDoc(docRef, {
     nome,
     createdAt: serverTimestamp(),
-  })
-  return docRef.id
+  }).catch(e => console.error("Erro ao sincronizar paciente:", e))
+  
+  return id
 }
 
 export async function listarPacientes(): Promise<Paciente[]> {
@@ -68,11 +74,16 @@ export async function criarRegistro(
 ): Promise<string> {
   const firestore = getDatabase()
   const registrosRef = collection(firestore, "pacientes", pacienteId, "registros")
-  const docRef = await addDoc(registrosRef, {
+  const docRef = doc(registrosRef)
+  const id = docRef.id
+  
+  // Executa o setDoc em segundo plano para retorno imediato (offline-first)
+  setDoc(docRef, {
     ...data,
     createdAt: serverTimestamp(),
-  })
-  return docRef.id
+  }).catch(e => console.error("Erro ao sincronizar registro:", e))
+  
+  return id
 }
 
 export async function listarRegistros(pacienteId: string): Promise<Registro[]> {

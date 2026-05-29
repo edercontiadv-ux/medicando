@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useState, useEffect, use } from "react"
+import { useRouter } from "next/navigation"
 import { ArrowLeft, Plus, FileText, Pill } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,8 +18,13 @@ import { exportarPDF } from "@/utils/exportPdf"
 import type { Paciente, Registro } from "@/types"
 import { formatDate } from "@/types"
 
-export default function PacientePage() {
-  const params = useParams()
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export default function PacientePage({ params }: PageProps) {
+  const resolvedParams = use(params)
+  const id = resolvedParams.id
   const router = useRouter()
   const [paciente, setPaciente] = useState<Paciente | null>(null)
   const [registros, setRegistros] = useState<Registro[]>([])
@@ -27,8 +32,6 @@ export default function PacientePage() {
   const [medicamento, setMedicamento] = useState("")
   const [dosagem, setDosagem] = useState("")
   const [observacao, setObservacao] = useState("")
-
-  const id = params.id as string
 
   useEffect(() => {
     if (!id) return
