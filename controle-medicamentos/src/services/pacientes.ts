@@ -1,6 +1,5 @@
 import {
   collection,
-  addDoc,
   setDoc,
   getDocs,
   getDoc,
@@ -92,6 +91,20 @@ export async function criarRegistro(
   })
 
   return id
+}
+
+export async function removerRegistro(pacienteId: string, registroId: string): Promise<void> {
+  const firestore = getDatabase()
+  await deleteDoc(doc(firestore, "pacientes", pacienteId, "registros", registroId))
+}
+
+export async function atualizarRegistro(
+  pacienteId: string,
+  registroId: string,
+  data: Partial<Omit<Registro, "id" | "createdAt">>
+): Promise<void> {
+  const firestore = getDatabase()
+  await setDoc(doc(firestore, "pacientes", pacienteId, "registros", registroId), data, { merge: true })
 }
 
 export async function listarRegistros(pacienteId: string): Promise<Registro[]> {

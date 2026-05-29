@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, FileText, Pill } from "lucide-react"
+import { ArrowLeft, Plus, FileText, Pill, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { getPaciente, criarRegistro, listarRegistros } from "@/services/pacientes"
+import { getPaciente, criarRegistro, listarRegistros, removerRegistro, atualizarRegistro } from "@/services/pacientes"
 import { exportarPDF } from "@/utils/exportPdf"
 import type { Paciente, Registro } from "@/types"
 import { formatDateTime } from "@/types"
@@ -33,6 +33,8 @@ export default function PacientePage({ params }: PageProps) {
   const [medicamento, setMedicamento] = useState("")
   const [dosagem, setDosagem] = useState("")
   const [observacao, setObservacao] = useState("")
+  const [editando, setEditando] = useState<Registro | null>(null)
+  const [editOpen, setEditOpen] = useState(false)
   const [erro, setErro] = useState("")
   const [loading, setLoading] = useState(true)
 
@@ -67,6 +69,47 @@ export default function PacientePage({ params }: PageProps) {
       setRegistros(await listarRegistros(id))
     } catch {
       setErro("Erro ao registrar medicamento. Verifique a conexão.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleExcluir(registroId: string) {
+    if (!confirm("Excluir este registro?")) return
+    try {
+      await removerRegistro(id, registroId)
+      setRegistros(await listarRegistros(id))
+    } catch {
+      setErro("Erro ao excluir registro.")
+    }
+  }
+
+  function handleEditar(r: Registro) {
+    setEditando(r)
+    setMedicamento(r.medicamento)
+    setDosagem(r.dosagem)
+    setObservacao(r.observacao)
+    setEditOpen(true)
+  }
+
+  async function handleSalvarEdicao() {
+    if (!editando || !medicamento.trim() || submitting) return
+    setSubmitting(true)
+    setErro("")
+    try {
+      await atualizarRegistro(id, editando.id, {
+        medicamento: medicamento.trim(),
+        dosagem: dosagem.trim(),
+        observacao: observacao.trim(),
+      })
+      setEditando(null)
+      setMedicamento("")
+      setDosagem("")
+      setObservacao("")
+      setEditOpen(false)
+      setRegistros(await listarRegistros(id))
+    } catch {
+      setErro("Erro ao editar registro.")
     } finally {
       setSubmitting(false)
     }
@@ -177,9 +220,27 @@ export default function PacientePage({ params }: PageProps) {
                         </p>
                       )}
                     </div>
-                    <time className="text-xs text-muted-foreground/60 shrink-0 mt-1 font-medium">
-                      {formatDateTime(r.createdAt)}
-                    </time>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <time className="text-xs text-muted-foreground/60 font-medium">
+                        {formatDateTime(r.createdAt)}
+                      </time>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleEditar(r)}
+                          className="min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg hover:bg-black/5 active:scale-95 transition-all"
+                          title="Editar"
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-muted-foreground/60" />
+                        </button>
+                        <button
+                          onClick={() => handleExcluir(r.id)}
+                          className="min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg hover:bg-red-50 active:scale-95 transition-all"
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -187,6 +248,50 @@ export default function PacientePage({ params }: PageProps) {
           ))}
         </div>
       )}
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-[family-name:var(--font-display)] text-xl">
+              Editar Medicamento
+            </DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleSalvarEdicao()
+            }}
+            className="flex flex-col gap-4 pt-1"
+          >
+            <Input
+              placeholder="Medicamento"
+              value={medicamento}
+              onChange={(e) => setMedicamento(e.target.value)}
+              className="text-base"
+              autoFocus
+            />
+            <Input
+              placeholder="Dosagem (ex: 500mg)"
+              value={dosagem}
+              onChange={(e) => setDosagem(e.target.value)}
+              className="text-base"
+              inputMode="text"
+            />
+            <Input
+              placeholder="Observação"
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+              className="text-base"
+            />
+            {erro && (
+              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{erro}</p>
+            )}
+            <Button type="submit" className="min-h-[48px] text-sm" disabled={submitting}>
+              {submitting ? "Salvando..." : "Salvar"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm min-h-[52px] rounded-xl gap-2.5 shadow-lg bg-[#0d5555] text-[#faf8f5] font-medium inline-flex items-center justify-center hover:bg-[#0a4545] active:scale-[0.98] transition-all duration-200 text-sm">
