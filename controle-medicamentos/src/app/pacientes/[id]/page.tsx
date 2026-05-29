@@ -16,7 +16,7 @@ import {
 import { getPaciente, criarRegistro, listarRegistros } from "@/services/pacientes"
 import { exportarPDF } from "@/utils/exportPdf"
 import type { Paciente, Registro } from "@/types"
-import { formatDate } from "@/types"
+import { formatDateTime } from "@/types"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -76,7 +76,7 @@ export default function PacientePage({ params }: PageProps) {
     exportarPDF(
       paciente?.nome ?? "Paciente",
       registros.map((r) => ({
-        data: formatDate(r.createdAt),
+        data: formatDateTime(r.createdAt),
         medicamento: r.medicamento,
         dosagem: r.dosagem,
         observacao: r.observacao,
@@ -178,7 +178,7 @@ export default function PacientePage({ params }: PageProps) {
                       )}
                     </div>
                     <time className="text-xs text-muted-foreground/60 shrink-0 mt-1 font-medium">
-                      {formatDate(r.createdAt)}
+                      {formatDateTime(r.createdAt)}
                     </time>
                   </div>
                 </CardContent>
