@@ -128,7 +128,7 @@ export default function Home() {
               >
                 <Link
                   href={`/pacientes/${p.id}`}
-                  className="flex items-center p-4 pl-5 hover:-translate-y-0.5 active:scale-[0.99] transition-all block"
+                  className="flex items-center p-4 pl-5 pr-20 hover:-translate-y-0.5 active:scale-[0.99] transition-all block"
                 >
                   <div className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full bg-[#0d5555]/20 group-hover:bg-[#0d5555]/40 transition-colors" />
                   <span className="font-[family-name:var(--font-display)] text-lg font-medium text-[#1a1a18] flex-1">
