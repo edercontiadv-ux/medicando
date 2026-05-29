@@ -1,9 +1,0 @@
-.tmp/
-.env
-.env.local
-credentials.json
-token.json
-medicando-f232d-firebase-adminsdk-fbsvc-4345d3a3da.json
-controle-medicamentos/node_modules/
-controle-medicamentos/.next/
-controle-medicamentos/out/
