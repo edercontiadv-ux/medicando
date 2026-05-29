@@ -33,27 +33,43 @@ export default function PacientePage({ params }: PageProps) {
   const [medicamento, setMedicamento] = useState("")
   const [dosagem, setDosagem] = useState("")
   const [observacao, setObservacao] = useState("")
+  const [erro, setErro] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!id) return
-    getPaciente(id).then(setPaciente)
-    listarRegistros(id).then(setRegistros)
+    setLoading(true)
+    setErro("")
+    Promise.all([
+      getPaciente(id).then(setPaciente),
+      listarRegistros(id).then(setRegistros),
+    ]).catch(() => {
+      setErro("Erro ao carregar dados. Firebase não configurado.")
+    }).finally(() => {
+      setLoading(false)
+    })
   }, [id])
 
   async function handleRegistrar() {
     if (!medicamento.trim() || submitting) return
     setSubmitting(true)
-    await criarRegistro(id, {
-      medicamento: medicamento.trim(),
-      dosagem: dosagem.trim(),
-      observacao: observacao.trim(),
-    })
-    setMedicamento("")
-    setDosagem("")
-    setObservacao("")
-    setOpen(false)
-    setSubmitting(false)
-    setRegistros(await listarRegistros(id))
+    setErro("")
+    try {
+      await criarRegistro(id, {
+        medicamento: medicamento.trim(),
+        dosagem: dosagem.trim(),
+        observacao: observacao.trim(),
+      })
+      setMedicamento("")
+      setDosagem("")
+      setObservacao("")
+      setOpen(false)
+      setRegistros(await listarRegistros(id))
+    } catch {
+      setErro("Erro ao registrar medicamento. Verifique a conexão.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   function handleExportPDF() {
@@ -68,13 +84,29 @@ export default function PacientePage({ params }: PageProps) {
     )
   }
 
-  if (!paciente) return (
+  if (loading) return (
     <main className="min-h-screen max-w-sm mx-auto px-4 pt-8">
       <div className="animate-fade-in space-y-3">
         <div className="h-10 w-24 rounded-lg bg-gradient-to-r from-[#e8e4df] via-[#f5f2ed] to-[#e8e4df] bg-[length:200%_100%]" />
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-[72px] rounded-xl bg-gradient-to-r from-[#e8e4df] via-[#f5f2ed] to-[#e8e4df] bg-[length:200%_100%]" />
         ))}
+      </div>
+    </main>
+  )
+
+  if (erro) return (
+    <main className="min-h-screen max-w-sm mx-auto px-4 pt-8">
+      <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
+        <p className="text-red-600 text-center text-sm bg-red-50 rounded-xl px-4 py-3">{erro}</p>
+      </div>
+    </main>
+  )
+
+  if (!paciente) return (
+    <main className="min-h-screen max-w-sm mx-auto px-4 pt-8">
+      <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
+        <p className="text-muted-foreground text-center text-sm">Paciente não encontrado.</p>
       </div>
     </main>
   )
@@ -194,6 +226,9 @@ export default function PacientePage({ params }: PageProps) {
               onChange={(e) => setObservacao(e.target.value)}
               className="text-base"
             />
+            {erro && (
+              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{erro}</p>
+            )}
             <Button type="submit" className="min-h-[48px] text-sm" disabled={submitting}>
               {submitting ? "Salvando..." : "Salvar"}
             </Button>

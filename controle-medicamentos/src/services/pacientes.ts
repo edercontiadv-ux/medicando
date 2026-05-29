@@ -28,12 +28,12 @@ export async function criarPaciente(nome: string): Promise<string> {
   const pacientesRef = collection(firestore, "pacientes")
   const docRef = doc(pacientesRef)
   const id = docRef.id
-  
+
   await setDoc(docRef, {
     nome,
     createdAt: serverTimestamp(),
-  }).catch(e => console.error("Erro ao sincronizar paciente:", e))
-  
+  })
+
   return id
 }
 
@@ -85,12 +85,12 @@ export async function criarRegistro(
   const registrosRef = collection(firestore, "pacientes", pacienteId, "registros")
   const docRef = doc(registrosRef)
   const id = docRef.id
-  
+
   await setDoc(docRef, {
     ...data,
     createdAt: serverTimestamp(),
-  }).catch(e => console.error("Erro ao sincronizar registro:", e))
-  
+  })
+
   return id
 }
 

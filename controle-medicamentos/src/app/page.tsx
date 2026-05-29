@@ -14,21 +14,30 @@ import { Input } from "@/components/ui/input"
 import { usePacientes } from "@/hooks/usePacientes"
 import { criarPaciente } from "@/services/pacientes"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
+  const router = useRouter()
   const { pacientes, loading, refetch } = usePacientes()
   const [nome, setNome] = useState("")
   const [open, setOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [erro, setErro] = useState("")
 
   async function handleCriar() {
     if (!nome.trim() || submitting) return
     setSubmitting(true)
-    await criarPaciente(nome.trim())
-    setNome("")
-    setOpen(false)
-    setSubmitting(false)
-    refetch()
+    setErro("")
+    try {
+      const id = await criarPaciente(nome.trim())
+      setNome("")
+      setOpen(false)
+      router.push(`/pacientes/${id}`)
+    } catch (e) {
+      setErro("Erro ao cadastrar paciente. Verifique a conexão com o Firebase.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -117,6 +126,9 @@ export default function Home() {
               className="text-base"
               autoFocus
             />
+            {erro && (
+              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{erro}</p>
+            )}
             <Button type="submit" className="min-h-[48px] text-sm" disabled={submitting}>
               {submitting ? "Salvando..." : "Cadastrar"}
             </Button>
