@@ -14,25 +14,26 @@ export interface Registro {
   createdAt: Timestamp | null
 }
 
-function formatTimestamp(t: any, options: Intl.DateTimeFormatOptions): string {
-  if (!t) return ""
+function toDate(t: any): Date | null {
+  if (!t) return null
   try {
-    if (typeof t.toDate === "function") return t.toDate().toLocaleDateString("pt-BR", options)
-    if (t instanceof Date) return t.toLocaleDateString("pt-BR", options)
-    if (typeof t === "string" || typeof t === "number") return new Date(t).toLocaleDateString("pt-BR", options)
+    if (typeof t.toDate === "function") return t.toDate()
+    if (t instanceof Date) return t
+    if (typeof t === "string" || typeof t === "number") return new Date(t)
   } catch (e) {
-    console.error("Erro ao formatar data:", e)
+    console.error("Erro ao converter data:", e)
   }
-  return ""
+  return null
 }
 
 export function formatDate(t: any): string {
-  return formatTimestamp(t, { dateStyle: "short" })
+  const d = toDate(t)
+  if (!d) return ""
+  return d.toLocaleDateString("pt-BR")
 }
 
 export function formatDateTime(t: any): string {
-  return formatTimestamp(t, {
-    dateStyle: "short",
-    timeStyle: "short",
-  })
+  const d = toDate(t)
+  if (!d) return ""
+  return d.toLocaleString("pt-BR")
 }
