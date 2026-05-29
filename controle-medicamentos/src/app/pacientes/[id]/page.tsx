@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Plus, FileText } from "lucide-react"
+import { ArrowLeft, Plus, FileText, Pill } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -62,70 +62,111 @@ export default function PacientePage() {
     )
   }
 
-  if (!paciente) return <p className="text-center py-8 text-slate-500">Carregando...</p>
+  if (!paciente) return (
+    <main className="min-h-screen max-w-sm mx-auto px-4 pt-8">
+      <div className="animate-fade-in space-y-3">
+        <div className="h-10 w-24 rounded-lg bg-gradient-to-r from-[#e8e4df] via-[#f5f2ed] to-[#e8e4df] bg-[length:200%_100%]" />
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-[72px] rounded-xl bg-gradient-to-r from-[#e8e4df] via-[#f5f2ed] to-[#e8e4df] bg-[length:200%_100%]" />
+        ))}
+      </div>
+    </main>
+  )
 
   return (
-    <main className="min-h-screen max-w-sm mx-auto px-4 pb-24 pt-6">
-      <div className="flex items-center gap-3 mb-6">
+    <main className="min-h-screen max-w-sm mx-auto px-4 pb-28 pt-8">
+      <div className="flex items-center gap-2 mb-7 animate-fade-in">
         <button
           onClick={() => router.back()}
-          className="min-h-[48px] min-w-[48px] flex items-center justify-center"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-black/5 active:scale-95 transition-all"
         >
-          <ArrowLeft className="w-5 h-5 text-slate-700" />
+          <ArrowLeft className="w-5 h-5 text-[#1a1a18]" />
         </button>
-        <h1 className="text-xl font-bold text-slate-900 flex-1">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-[#1a1a18] flex-1">
           {paciente.nome}
         </h1>
         <button
           onClick={handleExportPDF}
-          className="min-h-[48px] min-w-[48px] flex items-center justify-center"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-black/5 active:scale-95 transition-all"
+          title="Exportar PDF"
         >
-          <FileText className="w-5 h-5 text-slate-700" />
+          <FileText className="w-5 h-5 text-[#0d5555]" />
         </button>
       </div>
 
       {registros.length === 0 ? (
-        <p className="text-center text-slate-400 py-16">
-          Nenhum registro de medicação
-        </p>
+        <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
+          <div className="w-16 h-16 rounded-full bg-[#d4826a]/10 flex items-center justify-center mb-5">
+            <Pill className="w-7 h-7 text-[#d4826a]/40" />
+          </div>
+          <p className="text-muted-foreground text-center text-sm leading-relaxed">
+            Nenhum registro de medicação
+          </p>
+          <p className="text-muted-foreground/60 text-xs mt-1">
+            Registre o primeiro medicamento
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {registros.map((r) => (
-            <Card key={r.id}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-1">
-                  <strong className="text-slate-900">{r.medicamento}</strong>
-                  <span className="text-sm text-slate-500">
-                    {formatDate(r.createdAt)}
-                  </span>
-                </div>
-                {r.dosagem && (
-                  <p className="text-sm text-slate-600">{r.dosagem}</p>
-                )}
-                {r.observacao && (
-                  <p className="text-sm text-slate-500 mt-1">{r.observacao}</p>
-                )}
-              </CardContent>
-            </Card>
+          {registros.map((r, i) => (
+            <div
+              key={r.id}
+              className={`animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
+            >
+              <Card
+                className="border border-[#e8e4df] bg-white shadow-sm transition-all duration-200 hover:shadow-md"
+                style={{
+                  boxShadow: "0 1px 3px rgba(13,85,85,0.06), 0 1px 2px rgba(13,85,85,0.04)",
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="w-2 h-2 rounded-full bg-[#0d5555]/30 shrink-0" />
+                        <strong className="font-[family-name:var(--font-display)] font-semibold text-[#1a1a18] text-base truncate">
+                          {r.medicamento}
+                        </strong>
+                      </div>
+                      {r.dosagem && (
+                        <p className="text-sm text-muted-foreground ml-4">
+                          {r.dosagem}
+                        </p>
+                      )}
+                      {r.observacao && (
+                        <p className="text-sm text-muted-foreground/70 ml-4 mt-0.5 italic">
+                          {r.observacao}
+                        </p>
+                      )}
+                    </div>
+                    <time className="text-xs text-muted-foreground/60 shrink-0 mt-1 font-medium">
+                      {formatDate(r.createdAt)}
+                    </time>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           ))}
         </div>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm min-h-[48px] rounded-xl gap-2 shadow-lg bg-primary text-primary-foreground font-medium inline-flex items-center justify-center hover:bg-primary/90 transition-colors">
+        <DialogTrigger className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm min-h-[52px] rounded-xl gap-2.5 shadow-lg bg-[#0d5555] text-[#faf8f5] font-medium inline-flex items-center justify-center hover:bg-[#0a4545] active:scale-[0.98] transition-all duration-200 text-sm">
           <Plus className="w-5 h-5" />
           Registrar Medicamento
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Registrar Medicamento</DialogTitle>
+            <DialogTitle className="font-[family-name:var(--font-display)] text-xl">
+              Registrar Medicamento
+            </DialogTitle>
           </DialogHeader>
           <form
             onSubmit={(e) => {
               e.preventDefault()
               handleRegistrar()
             }}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-4 pt-1"
           >
             <Input
               placeholder="Medicamento"
@@ -147,7 +188,7 @@ export default function PacientePage() {
               onChange={(e) => setObservacao(e.target.value)}
               className="text-base"
             />
-            <Button type="submit" className="min-h-[48px]">
+            <Button type="submit" className="min-h-[48px] text-sm">
               Salvar
             </Button>
           </form>
