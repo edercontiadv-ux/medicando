@@ -18,6 +18,12 @@ const bodyFont = DM_Sans({
 export const metadata: Metadata = {
   title: "Medicando",
   description: "Controle de medicamentos para pacientes",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Medicando",
+  },
 }
 
 export const viewport: Viewport = {

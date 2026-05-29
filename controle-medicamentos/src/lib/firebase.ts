@@ -16,9 +16,13 @@ function getDb() {
   }
   const existing = getApps()
   const app = existing.length === 0 ? initializeApp(firebaseConfig) : existing[0]
-  return initializeFirestore(app, {
-    localCache: persistentLocalCache(),
-  })
+  if (typeof window !== "undefined") {
+    return initializeFirestore(app, {
+      localCache: persistentLocalCache(),
+    })
+  } else {
+    return initializeFirestore(app, {})
+  }
 }
 
 export const db = getDb()
