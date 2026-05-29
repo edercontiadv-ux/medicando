@@ -13,9 +13,18 @@ import { db } from "@/lib/firebase"
 import type { Paciente, Registro } from "@/types"
 import { formatDate } from "@/types"
 
-const pacientesRef = collection(db, "pacientes")
+function getDatabase() {
+  if (!db) {
+    throw new Error(
+      "Firebase não configurado. Adicione as variáveis de ambiente NEXT_PUBLIC_FIREBASE_* no Vercel (Settings → Environment Variables)."
+    )
+  }
+  return db
+}
 
 export async function criarPaciente(nome: string): Promise<string> {
+  const firestore = getDatabase()
+  const pacientesRef = collection(firestore, "pacientes")
   const docRef = await addDoc(pacientesRef, {
     nome,
     createdAt: serverTimestamp(),
@@ -24,26 +33,41 @@ export async function criarPaciente(nome: string): Promise<string> {
 }
 
 export async function listarPacientes(): Promise<Paciente[]> {
-  const q = query(pacientesRef, orderBy("createdAt", "desc"))
-  const snapshot = await getDocs(q)
-  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Paciente))
+  try {
+    const firestore = getDatabase()
+    const pacientesRef = collection(firestore, "pacientes")
+    const q = query(pacientesRef, orderBy("createdAt", "desc"))
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Paciente))
+  } catch (e) {
+    console.error("Erro ao listar pacientes:", e)
+    return []
+  }
 }
 
 export async function getPaciente(id: string): Promise<Paciente | null> {
-  const snap = await getDoc(doc(db, "pacientes", id))
-  if (!snap.exists()) return null
-  return { id: snap.id, ...snap.data() } as Paciente
+  try {
+    const firestore = getDatabase()
+    const snap = await getDoc(doc(firestore, "pacientes", id))
+    if (!snap.exists()) return null
+    return { id: snap.id, ...snap.data() } as Paciente
+  } catch (e) {
+    console.error("Erro ao buscar paciente:", e)
+    return null
+  }
 }
 
 export async function removerPaciente(id: string): Promise<void> {
-  await deleteDoc(doc(db, "pacientes", id))
+  const firestore = getDatabase()
+  await deleteDoc(doc(firestore, "pacientes", id))
 }
 
 export async function criarRegistro(
   pacienteId: string,
   data: Omit<Registro, "id" | "createdAt">
 ): Promise<string> {
-  const registrosRef = collection(db, "pacientes", pacienteId, "registros")
+  const firestore = getDatabase()
+  const registrosRef = collection(firestore, "pacientes", pacienteId, "registros")
   const docRef = await addDoc(registrosRef, {
     ...data,
     createdAt: serverTimestamp(),
@@ -52,8 +76,14 @@ export async function criarRegistro(
 }
 
 export async function listarRegistros(pacienteId: string): Promise<Registro[]> {
-  const registrosRef = collection(db, "pacientes", pacienteId, "registros")
-  const q = query(registrosRef, orderBy("createdAt", "desc"))
-  const snapshot = await getDocs(q)
-  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Registro))
+  try {
+    const firestore = getDatabase()
+    const registrosRef = collection(firestore, "pacientes", pacienteId, "registros")
+    const q = query(registrosRef, orderBy("createdAt", "desc"))
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Registro))
+  } catch (e) {
+    console.error("Erro ao listar registros:", e)
+    return []
+  }
 }

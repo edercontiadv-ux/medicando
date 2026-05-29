@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Fraunces, DM_Sans } from "next/font/google"
 import "./globals.css"
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister"
 
 const displayFont = Fraunces({
   subsets: ["latin"],
@@ -36,7 +37,10 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${displayFont.variable} ${bodyFont.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ServiceWorkerRegister />
+        {children}
+      </body>
     </html>
   )
 }

@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app"
+import { initializeApp, getApps } from "firebase/app"
 import { initializeFirestore, persistentLocalCache } from "firebase/firestore"
 
 const firebaseConfig = {
@@ -10,8 +10,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-const app = initializeApp(firebaseConfig)
+function getDb() {
+  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+    return null
+  }
+  const existing = getApps()
+  const app = existing.length === 0 ? initializeApp(firebaseConfig) : existing[0]
+  return initializeFirestore(app, {
+    localCache: persistentLocalCache(),
+  })
+}
 
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache(),
-})
+export const db = getDb()
