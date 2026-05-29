@@ -224,17 +224,21 @@ export default function PacientePage({ params }: PageProps) {
         </button>
       </div>
 
-      {presets.length > 0 && (
-        <div className="mb-6 animate-fade-in">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Registro rápido</p>
-            <button
-              onClick={() => setPresetOpen(true)}
-              className="text-xs text-[#0d5555] hover:underline"
-            >
-              Gerenciar
-            </button>
-          </div>
+      <div className="mb-6 animate-fade-in">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Registro rápido</p>
+          <button
+            onClick={() => setPresetOpen(true)}
+            className="text-xs text-[#0d5555] hover:underline"
+          >
+            {presets.length > 0 ? "Gerenciar" : "Configurar"}
+          </button>
+        </div>
+        {presets.length === 0 ? (
+          <p className="text-xs text-muted-foreground/60">
+            Nenhum atalho ainda. Clique em "Configurar" para criar.
+          </p>
+        ) : (
           <div className="flex flex-wrap gap-2">
             {presets.map((p) => (
               <button
@@ -249,8 +253,8 @@ export default function PacientePage({ params }: PageProps) {
               </button>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <Dialog open={presetOpen} onOpenChange={setPresetOpen}>
         <DialogContent>
