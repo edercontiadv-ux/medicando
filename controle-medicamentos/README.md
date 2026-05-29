@@ -13,12 +13,14 @@ PWA mobile-first para controle de medicamentos.
 
 ## Funcionalidades
 
-- Cadastro de pacientes
-- Registro rápido de medicamentos com dosagem e observação
-- Histórico cronológico
-- Exportação PDF
+- Cadastro de pacientes com navegação automática para ficha
+- Registro de medicamentos com medicamento, dosagem e observação
+- Data e hora automáticas em cada registro
+- Histórico cronológico com data/hora
+- Exportação PDF com tabela completa
 - PWA instalável com suporte offline
 - Design mobile-first (max-w-sm)
+- Tratamento de erros com feedback visual
 
 ## Como rodar
 
@@ -31,7 +33,33 @@ Abra [http://localhost:3000](http://localhost:3000).
 
 ## Variáveis de ambiente
 
-Copie `.env.local` e preencha com as credenciais do Firebase Web App.
+Copie `.env.local` e preencha com as credenciais do Firebase Web App:
+
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+```
+
+## Regras do Firestore
+
+Para desenvolvimento, use:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+```
+
+> ⚠️ Modo teste. Para produção, implemente autenticação e restrinja por usuário.
 
 ## Build
 
