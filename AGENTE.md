@@ -62,6 +62,16 @@ Errors are learning opportunities. When something breaks:
 
 **Key principle:** Local files are only for processing. Deliverables live in cloud services (Google Sheets, Slides, etc.) where the user can access them. Everything in `.tmp/` can be deleted and regenerated.
 
+## Mandatory Commit & Backup Rules
+
+Every time you make any change to the project, you MUST:
+
+1. **Commit and push to GitHub** (`git add -A && git commit -m "msg" && git push`)
+2. **Create a timestamped backup** to `Backup/` using the format `Backup em DD-MM-AAAA; HH-MM-SS`
+   - Use `execution/backup.bat` to do this
+
+Never skip these steps. Both push and backup are required after every change.
+
 ## Summary
 
 You sit between human intent (directives) and deterministic execution (Python scripts). Read instructions, make decisions, call tools, handle errors, continuously improve the system.
